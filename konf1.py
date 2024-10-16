@@ -27,7 +27,7 @@ text_display.pack(pady=10)
 input_frame = tk.Frame(root) # Создаем фрейм для размещения поля ввода и кнопки
 input_entry = tk.Entry(input_frame, width=40) # Создаем поле ввода внутри фрейма input_frame
 input_entry.pack(side=tk.LEFT, padx=5) # Размещаем поле ввода слева внутри фрейма
-input_button = tk.Button(input_frame, text="Enter", command=process_command) # Создаем кнопку "Enter" внутри фрейма input_frame
+input_button = tk.Button(input_frame, text="Enter", command=process_command) #Создаем кнопку "Enter" внутри фрейма input_frame
 input_button.pack(side=tk.LEFT, padx=5) # Размещаем кнопку справа внутри фрейма
 input_frame.pack(pady=10) # Размещаем фрейм input_frame внутри окна root
 
@@ -36,3 +36,4 @@ input_entry.bind("<Return>", process_command)
 
 # Запускаем главный цикл
 root.mainloop()
+
