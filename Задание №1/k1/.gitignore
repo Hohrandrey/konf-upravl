@@ -1,0 +1,7 @@
+<<<<<<< HEAD
+./.idea
+./.pytest_cache
+=======
+/venv/
+/.idea/
+>>>>>>> origin/master
