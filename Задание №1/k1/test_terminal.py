@@ -6,8 +6,11 @@ from window_mode import Window
 
 @pytest.fixture
 def terminal():
-    fs_path = 'test.zip'
-    t = MyTerminal(ZipFile(fs_path, 'a'))
+    start_path = 'test.zip'
+    user_name = 'Andrew'
+    comp_name = 'Computer'
+    zip_path = 'test.zip'
+    t = MyTerminal(user_name, comp_name, zip_path, start_path, ZipFile( start_path, 'a'))
     return t
 
 

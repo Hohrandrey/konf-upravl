@@ -6,9 +6,8 @@ from terminal import MyTerminal
 import csv
 
 def main():
-    """if len(argv) > 1:
-        config_file = argv[1]"""
-    config_file  = "config.csv"
+    if len(argv) > 1:
+        config_file = argv[1]
 
     try:
         with open(config_file, 'r') as file:

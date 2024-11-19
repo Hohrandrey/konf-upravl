@@ -111,51 +111,23 @@ class MyTerminal:
     def find(self, params):
         if len(params) > 0:
             find = params[-1]
-            files = ''
-            self.output(str(self.fs.namelist()))
-            for file in self.fs.namelist():
+            files = []
+
+            # Получаем список файлов в текущем каталоге
+            current_files = self.fs.namelist()
+
+            # Поиск файлов, содержащих 'find' в названии
+            for file in current_files:
                 if find in file:
-                    path = file[5:]
-                    directory = ''
-                    if path[-1] != '/':
-                        directory = path[:-1]
-                        self.output("\npath: " + path)
-                        self.output("\ndirectory: "+directory)
-                        if find not in files:
-                            files += '\n' + directory
-                    elif directory not in files and files != '':
-                        files += '\n' + path
+                    files.append(file[5:])  # Убираем префикс из пути
 
             if len(files) == 0:
                 self.output("Файл не найден")
                 return "Файл не найден"
             else:
-                files = files.strip('\n')
-                self.output(files)
-                return files
+                result = '\n'.join(files)
+                self.output(result)
+                return result
         else:
             self.output("Параметры не были переданы")
             return "Параметры не были переданы"
-
-
-    def test(self):
-        self.output('тест 1 команды ls\n')
-        self.ls('')
-
-        self.output('\nтест 1 команды cd\n')
-        self.cd(' IloveKIS')
-
-        self.output('\nтест 2 команды ls\n')
-        self.ls('')
-
-        self.output('\nтест 2 команды cd\n')
-        self.cd('..')
-
-        self.output('\nтест 3 команды ls\n')
-        self.ls('')
-
-        self.output('\nтест 1 команды find\n')
-        self.find('.')
-
-        self.output('\nтест 2 команды find\n')
-        self.find('qwerty')
