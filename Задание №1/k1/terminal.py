@@ -87,7 +87,7 @@ class MyTerminal:
     def ls(self, params):
         work_directory = self.cur_d_true
         if len(params) > 0:
-            work_directory = self.cd([self.cur_d_true + params[-1]])
+            work_directory = self.cd([params[-1]])
             if work_directory is None:
                 return ''
 
@@ -107,16 +107,20 @@ class MyTerminal:
         res_time = str(int(cur_time - self.start_time)//60+1)
         return "up " + res_time + " min"
 
+
     def find(self, params):
         if len(params) > 0:
             find = params[-1]
             files = ''
+            self.output(str(self.fs.namelist()))
             for file in self.fs.namelist():
                 if find in file:
                     path = file[5:]
                     directory = ''
-                    if path[-1] == '/':
+                    if path[-1] != '/':
                         directory = path[:-1]
+                        self.output("\npath: " + path)
+                        self.output("\ndirectory: "+directory)
                         if find not in files:
                             files += '\n' + directory
                     elif directory not in files and files != '':
@@ -125,12 +129,14 @@ class MyTerminal:
             if len(files) == 0:
                 self.output("Файл не найден")
                 return "Файл не найден"
-            files = files.strip('\n')
-            self.output(files)
-            return files
+            else:
+                files = files.strip('\n')
+                self.output(files)
+                return files
         else:
             self.output("Параметры не были переданы")
             return "Параметры не были переданы"
+
 
     def test(self):
         self.output('тест 1 команды ls\n')

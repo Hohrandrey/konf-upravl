@@ -28,8 +28,6 @@ def main():
                 Window(MyTerminal(user_name, computer_name, zip_path, start_path, file_system)).start_polling()
     except FileNotFoundError:
         print(f"Файл {config_file} не найден.")
-    """else:
-        print("Аргументы не были переданы.")"""
 
 
 if __name__ == '__main__':
