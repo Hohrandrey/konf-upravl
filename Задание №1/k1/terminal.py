@@ -16,6 +16,17 @@ class MyTerminal:
         self.polling = False
         self.window = None
 
+    def run(self):
+        # Считываем команды из стартового скрипта
+        try:
+            with open(self.start_path, 'r') as f:
+                for line in f:
+                    self.command_dispatcher(line)
+
+
+        except FileNotFoundError:
+            print("No startup file found!!!\n")
+
     def attach(self, window: Window):
         self.window = window
         self.window.write(f'{self.user_name}@{self.comp_name}:~{self.cur_d}$ ')

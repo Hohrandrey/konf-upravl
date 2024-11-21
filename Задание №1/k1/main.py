@@ -8,7 +8,6 @@ import csv
 def main():
     if len(argv) > 1:
         config_file = argv[1]
-
         try:
             with open(config_file, 'r') as file:
                 reader = csv.reader(file, delimiter=';')
@@ -24,7 +23,10 @@ def main():
                         elif key == "startpath":
                             start_path = value
                 with ZipFile(zip_path, 'a') as file_system:
-                    Window(MyTerminal(user_name, computer_name, zip_path, start_path, file_system)).start_polling()
+                    terminal = MyTerminal(user_name, computer_name, zip_path, start_path, file_system)
+                    window = Window(terminal)
+                    terminal.run()
+                    window.start_polling()
         except FileNotFoundError:
             print(f"Файл {config_file} не найден.")
     else:
