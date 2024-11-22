@@ -1,4 +1,5 @@
 import pytest
+from types import NoneType
 from terminal import MyTerminal
 from zipfile import ZipFile
 from window_mode import Window
@@ -45,25 +46,23 @@ def test_cd_2(terminal):
 
 
 def test_ls_1(terminal):
-    assert all(i in terminal.ls([]) for i in "\nIloveKIS\n[eq.bmp\nqwerty.docx\nПрезентация.pptx")
+    assert terminal.ls([]) == 'IloveKIS\n[eq.bmp\nqwerty.docx\nПрезентация.pptx'
 
 
 def test_ls_2(terminal):
-    terminal.cur_d = terminal.cd(['IloveKIS'])
-    assert terminal.ls([]) == "\ntopsecret\n1.txt\nЯЛКВМОМ.txt"
-
-
-def test_ls_3(terminal):
-    assert all(i in terminal.ls(['user']) for i in "me secrets.txt top_secret.txt".split())
+    assert terminal.ls(["IloveKIS"]) == '1.txt\nofiuhdsjk.txt\ntopsecret\nЯЛКВМОМ.txt'
 
 
 def test_uptime_1(terminal):
     assert terminal.uptime() == "up 1 min"
 
+def test_uptime_2(terminal):
+    assert terminal.uptime() == "up 1 min"
+
 
 def test_find_1(terminal):
-    assert terminal.find(['.']) == "up 1 min"
+    assert terminal.find(["qwerty.docx"]) == "qwerty.docx"
 
 
 def test_find_2(terminal):
-    assert terminal.find(['1.txt']) == "IloveKIS/1.txt"
+    assert terminal.find(["1.txt"]) == "IloveKIS/1.txt"
