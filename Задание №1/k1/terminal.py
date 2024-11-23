@@ -47,13 +47,11 @@ class MyTerminal:
                 self.cur_d_true = temp_dir
                 self.cur_d = temp_dir[5:]
         elif params[0] == 'ls':
-            self.ls(params[1:])
+            self.output(self.ls(params[1:]))
         elif params[0] == 'uptime':
             self.output(self.uptime())
         elif params[0] == 'find':
-            self.find(params[1:])
-        elif params[0] == 'test':
-            self.test()
+            self.output(self.find(params[1:]))
         else:
             self.output("Команда не найдена")
         self.window.write(f'{self.user_name}@{self.comp_name}:~{self.cur_d}$ ')
@@ -109,7 +107,6 @@ class MyTerminal:
                 if '/' in ls_name:
                     ls_name = ls_name[:ls_name.index('/')]
                 files.add(ls_name)
-        self.output('\n'.join(sorted(filter(lambda x: len(x) > 0, files))))
         return '\n'.join(sorted(filter(lambda x: len(x) > 0, files)))
 
 
@@ -137,8 +134,6 @@ class MyTerminal:
                 return "Файл не найден"
             else:
                 result = '\n'.join(files)
-                self.output(result)
                 return result
         else:
-            self.output("Параметры не были переданы")
             return "Параметры не были переданы"
