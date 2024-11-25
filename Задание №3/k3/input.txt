@@ -1,4 +1,4 @@
-(define a 10)
-(define b 20)
-!(a + b)
-!(x - 5)
+(define x 5)
+(define y (x 2 +))
+(define arr [1 2 3 4])
+!(arr len)

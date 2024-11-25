@@ -1,54 +1,75 @@
 import re
-import sys
 import xml.etree.ElementTree as ET
 
-# Регулярные выражения для синтаксического анализа
-define_re = r"\(define\s+([a-zA-Z][_a-zA-Z0-9]*)\s+(.+?)\)"
-expr_re = r"!\(([^)]+)\)"
+# Класс для работы с конфигурацией
+class ConfigParser:
+    def __init__(self):
+        self.variables = {}
 
+    def parse_define(self, match):
+        name = match.group(1)
+        value = match.group(2)
+        if value.startswith('[') and value.endswith(']'):
+            value = self.parse_array(value)
+        elif value.isdigit():
+            value = int(value)
+        elif '(' in value:  # Это выражение для вычисления
+            value = self.evaluate_expression(value)
+        self.variables[name] = value
 
-def parse_define(match):
-    name = match.group(1)
-    value = match.group(2)
-    return ET.Element("define", name=name, value=value)
+    def parse_array(self, array_str):
+        values = array_str[1:-1].split()
+        return [int(v) for v in values]
 
+    def evaluate_expression(self, expr):
+        # Пример постфиксной формы
+        tokens = expr[1:].split()
+        print(tokens)
+        name = tokens[0]
+        print("name"+name)
+        operation = tokens[1]
+        print("operation"+operation)
+        operand = tokens[2]
+        value = self.variables[name]
+        if operation == "+":
+            return value + operand
+        elif operation == "-":
+            return value - operand
+        elif operation == "pow":
+            return pow(value, operand)
+        elif operation == "len":
+            return len(self.variables[name])
+        return 0
 
-def parse_expression(match):
-    expr = match.group(1).split()
-    variable = expr[0]
-    operation = expr[1] if len(expr) > 1 else "unknown"
+    def parse(self, input_text):
+        # Пример регулярных выражений для поиска конструкций
+        define_regex = r"\(define (\w+) (.+?)\)"
+        operation_regex = r"!(\(\w+ .+\))"
 
-    # Создаем элемент для выражения
-    expr_element = ET.Element("expression", value="unknown")
-    variable_element = ET.SubElement(expr_element, "variable")
-    variable_element.text = variable
-    operation_element = ET.SubElement(expr_element, "operation")
-    operation_element.text = operation
-    return expr_element
+        defines = re.finditer(define_regex, input_text)
+        for match in defines:
+            self.parse_define(match)
 
+    def to_xml(self):
+        root = ET.Element("configuration")
+        for name, value in self.variables.items():
+            if isinstance(value, list):
+                value = f"[{', '.join(map(str, value))}]"
+            ET.SubElement(root, "define", name=name, value=str(value))
+        return ET.tostring(root, encoding="unicode")
 
-def parse_input(input_text):
-    config_element = ET.Element("config")
-
-    # Ищем определения
-    for match in re.finditer(define_re, input_text):
-        config_element.append(parse_define(match))
-
-    # Ищем выражения
-    for match in re.finditer(expr_re, input_text):
-        config_element.append(parse_expression(match))
-
-    return config_element
-
-
+# Основная логика программы
 def main():
-    input_text = sys.stdin.read()
-    config_element = parse_input(input_text)
+    with open('input.txt', 'r') as infile:
+        input_text = infile.read()
 
-    # Преобразуем в XML и выводим
-    tree = ET.ElementTree(config_element)
-    tree.write(sys.stdout, encoding="utf-8", xml_declaration=True)
+    parser = ConfigParser()
+    parser.parse(input_text)
 
+    output_xml = parser.to_xml()
+
+    with open('output.txt', 'w') as outfile:
+        outfile.write(output_xml)
 
 if __name__ == "__main__":
     main()
