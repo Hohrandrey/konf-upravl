@@ -1,0 +1,8 @@
+<configuration>
+  <define name="x" value="2"/>
+  <define name="a" value="10"/>
+  <define name="b" value="3"/>
+  <define name="!(x pow 3)" value="8"/>
+  <define name="!(a - 5)" value="5"/>
+  <define name="!(b + 2)" value="5"/>
+</configuration>

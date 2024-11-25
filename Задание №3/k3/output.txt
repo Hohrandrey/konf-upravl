@@ -1,5 +1,6 @@
 <configuration>
-    <define name="x" value="5" />
-    <define name="y" value="0" />
-    <define name="arr" value="[1, 2, 3, 4]" />
+  <define name="x" value="5"/>
+  <define name="y" value="7"/>
+  <define name="arr" value="[1, 2, 3, 4]"/>
+  <define name="!(arr len)" value="4"/>
 </configuration>

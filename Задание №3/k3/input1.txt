@@ -1,0 +1,6 @@
+(define x 2)
+!(x pow 3)
+(define a 10)
+(define b 3)
+!(a - 5)
+!(b + 2)
