@@ -4,7 +4,11 @@
     <inspection_tool class="PyUnresolvedReferencesInspection" enabled="true" level="WARNING" enabled_by_default="true">
       <option name="ignoredIdentifiers">
         <list>
+<<<<<<< HEAD
+          <option value="str.*" />
+=======
           <option value="pytest" />
+>>>>>>> f035ddd00099c40cae174c1520fff7e378811a83
         </list>
       </option>
     </inspection_tool>
