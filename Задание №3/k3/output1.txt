@@ -1,5 +1,5 @@
 <configuration>
-  <define name="x" value="2"/>
+  <x>2</x>
   <define name="a" value="10"/>
   <define name="b" value="3"/>
   <define name="!(x pow 3)" value="8"/>

@@ -1,6 +1,6 @@
 import re
 import xml.etree.ElementTree as ET
-from xml.dom import minidom  # Для красивого форматирования XML
+from xml.dom import minidom
 
 # Класс для работы с конфигурацией
 class ConfigParser:
