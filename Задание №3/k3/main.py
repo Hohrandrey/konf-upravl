@@ -35,9 +35,6 @@ class ConfigParser:
             expr = expr[2:].strip()  # Убираем "!" и оставляем выражение
         tokens = expr.split()
 
-        # Проверка на наличие как минимум одного операнда
-        if len(tokens) < 3:
-            raise ValueError(f"Неверное выражение: {expr}")
 
         # Первый элемент - это имя переменной
         name = tokens[0]
@@ -49,10 +46,11 @@ class ConfigParser:
         # Далее идут операции, будем выполнять их поочередно
         for i in range(1, len(tokens), 2):
             operation = tokens[i]
-            try:
-                operand = int((tokens[i + 1])[:-1])
-            except ValueError:
-                raise ValueError(f"Неправильный ввод команды")
+            if len(tokens) == 3:
+                try:
+                    operand = int((tokens[i + 1])[:-1])
+                except ValueError:
+                    raise ValueError(f"Неправильный ввод команды")
 
             if operation == "+":
                 value += operand
@@ -63,11 +61,11 @@ class ConfigParser:
             elif operation == "pow":
                 value = pow(value, operand)
                 self.variables["pow"] = value  # Сохраняем результат в переменную "pow"
-            elif operation == "len":
+            elif operation == "len)":
                 # Операция len применима только к массивам
                 if isinstance(self.variables[name], list):
                     value = len(self.variables[name])
-                    self.variables["len"] = value  # Сохраняем результат в переменную "len"
+                    self.variables["len_result"] = value  # Сохраняем результат в переменную "len_result"
                 else:
                     raise ValueError(f"len() можно применить только к массиву, а не к {type(self.variables[name])}")
             else:
@@ -99,8 +97,9 @@ class ConfigParser:
             # Преобразуем значение в строку, если это массив, то в строку вида [1, 2, 3]
             if isinstance(value, list):
                 value = f"[{', '.join(map(str, value))}]"
-            # Записываем только переменные, не содержащие "!"
-            if not name.startswith("!("):  # Избегаем записей вида !(x pow 3)
+            # Записываем только переменные, не содержащие "!".
+            # Избегаем записей вида !(x pow 3)
+            if not name.startswith("!("):
                 result += f"<{name}>{value}</{name}>\n"
 
         # Возвращаем результат

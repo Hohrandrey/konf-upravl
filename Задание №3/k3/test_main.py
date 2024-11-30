@@ -43,7 +43,7 @@ def test_array_operations():
     parser.parse(input_text)
 
     # Проверка длины массива
-    assert parser.variables['len'] == 4
+    assert parser.variables["len_result"] == 4
 
 
 # Тест на некорректные операции (ошибка)
