@@ -1,8 +1,6 @@
-<configuration>
-  <x>2</x>
-  <define name="a" value="10"/>
-  <define name="b" value="3"/>
-  <define name="!(x pow 3)" value="8"/>
-  <define name="!(a - 5)" value="5"/>
-  <define name="!(b + 2)" value="5"/>
-</configuration>
+<x>2</x>
+<a>10</a>
+<b>3</b>
+<pow>8</pow>
+<minus>5</minus>
+<plus>5</plus>

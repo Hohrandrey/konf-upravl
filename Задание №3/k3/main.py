@@ -16,17 +16,28 @@ class ConfigParser:
             value = int(value)
         elif value.startswith('!'):  # Это выражение для вычисления
             value = self.evaluate_expression(value)
+        else:
+            # Некорректное значение, если оно не массив, не число и не выражение
+            raise ValueError(f"Некорректное значение для переменной {name}: {value}")
+
         self.variables[name] = value
 
     def parse_array(self, array_str):
         values = array_str[1:-1].split()
-        return [int(v) for v in values]
+        try:
+            return [int(v) for v in values]
+        except ValueError:
+            raise ValueError(f"Некорректные элементы массива: {array_str}")
 
     def evaluate_expression(self, expr):
         # Убираем "!" и "(", ")" вокруг выражения, чтобы работать с чистой постфиксной формой
         if expr[0] == "!":
             expr = expr[2:].strip()  # Убираем "!" и оставляем выражение
         tokens = expr.split()
+
+        # Проверка на наличие как минимум одного операнда
+        if len(tokens) < 3:
+            raise ValueError(f"Неверное выражение: {expr}")
 
         # Первый элемент - это имя переменной
         name = tokens[0]
@@ -38,19 +49,25 @@ class ConfigParser:
         # Далее идут операции, будем выполнять их поочередно
         for i in range(1, len(tokens), 2):
             operation = tokens[i]
-            if len(tokens) > 2:
+            try:
                 operand = int((tokens[i + 1])[:-1])
+            except ValueError:
+                raise ValueError(f"Неправильный ввод команды")
 
             if operation == "+":
                 value += operand
+                self.variables["plus"] = value  # Сохраняем результат в переменную "plus"
             elif operation == "-":
                 value -= operand
+                self.variables["minus"] = value  # Сохраняем результат в переменную "minus"
             elif operation == "pow":
                 value = pow(value, operand)
-            elif operation == "len)":
+                self.variables["pow"] = value  # Сохраняем результат в переменную "pow"
+            elif operation == "len":
                 # Операция len применима только к массивам
                 if isinstance(self.variables[name], list):
                     value = len(self.variables[name])
+                    self.variables["len"] = value  # Сохраняем результат в переменную "len"
                 else:
                     raise ValueError(f"len() можно применить только к массиву, а не к {type(self.variables[name])}")
             else:
@@ -71,44 +88,47 @@ class ConfigParser:
         operations = re.finditer(operation_regex, input_text)
         for match in operations:
             operation_expr = match.group(0)
-            result = self.evaluate_expression(operation_expr)
-            # Записываем результат в переменную с именем, соответствующим операции
-            self.variables[operation_expr] = result  # Используем само выражение как имя переменной
+            # Результат операции записывается только в нужные переменные
+            self.evaluate_expression(operation_expr)
 
     def to_xml(self):
-        root = ET.Element("configuration")
+        # Создаем пустую строку для хранения результирующего XML
+        result = ""
+
         for name, value in self.variables.items():
+            # Преобразуем значение в строку, если это массив, то в строку вида [1, 2, 3]
             if isinstance(value, list):
                 value = f"[{', '.join(map(str, value))}]"
-            ET.SubElement(root, "define", name=name, value=str(value))
+            # Записываем только переменные, не содержащие "!"
+            if not name.startswith("!("):  # Избегаем записей вида !(x pow 3)
+                result += f"<{name}>{value}</{name}>\n"
 
-        # Преобразуем в строку и форматируем с использованием minidom
-        rough_xml = ET.tostring(root, encoding="unicode")
-        parsed_xml = minidom.parseString(rough_xml)
-
-        # Используем topyrettyxml без xml_declaration и удаляем строку с декларацией XML
-        pretty_xml = parsed_xml.toprettyxml(indent="  ")
-
-        # Удаляем строку с декларацией XML, если она есть
-        lines = pretty_xml.splitlines()
-        if lines[0].startswith("<?xml"):
-            lines = lines[1:]
-        return "\n".join(lines)
+        # Возвращаем результат
+        return result
 
 
 # Основная логика программы
 def main():
-    with open('input1.txt', 'r') as infile:
-        input_text = infile.read()
+    try:
+        with open('input1.txt', 'r') as infile:
+            input_text = infile.read()
 
-    parser = ConfigParser()
-    parser.parse(input_text)
+        # Проверка на пустоту входных данных
+        if not input_text.strip():
+            raise ValueError("Входной файл пуст.")
 
-    output_xml = parser.to_xml()
+        parser = ConfigParser()
+        parser.parse(input_text)
 
-    with open('output1.txt', 'w') as outfile:
-        outfile.write(output_xml)
+        output_xml = parser.to_xml()
 
+        with open('output1.txt', 'w') as outfile:
+            outfile.write(output_xml)
+
+        print("XML файл успешно записан.")
+
+    except ValueError as e:
+        print(f"Ошибка: {e}")
 
 if __name__ == "__main__":
     main()

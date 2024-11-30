@@ -28,8 +28,8 @@ def test_parse_operations():
     parser.parse(input_text)
 
     # Проверяем результат выполнения операций
-    assert parser.variables['!(x + 5)'] == 15
-    assert parser.variables['!(y - 5)'] == 15
+    assert parser.variables['plus'] == 15
+    assert parser.variables['minus'] == 15
 
 
 # Тест на выполнение операций с массивами
@@ -43,7 +43,7 @@ def test_array_operations():
     parser.parse(input_text)
 
     # Проверка длины массива
-    assert parser.variables['!(x len)'] == 4
+    assert parser.variables['len'] == 4
 
 
 # Тест на некорректные операции (ошибка)
@@ -72,11 +72,10 @@ def test_to_xml():
     parser.parse(input_text)
 
     # Ожидаемый XML-вывод
-    expected_xml = """<configuration>
-  <define name="x" value="10"/>
-  <define name="y" value="[1, 2, 3]"/>
-  <define name="!(x + 5)" value="15"/>
-</configuration>"""
+    expected_xml = """
+<x>10</x>
+<y>[1, 2, 3]</y>
+<plus>15</plus>"""
 
     output_xml = parser.to_xml()
 
@@ -107,14 +106,13 @@ def test_main_function(mock_file):
     # Проверка переменных после парсинга
     assert parser.variables['x'] == 10
     assert parser.variables['y'] == 20
-    assert parser.variables['!(x + 5)'] == 15
+    assert parser.variables['plus'] == 15
 
     # Проверка на корректность XML
     output_xml = parser.to_xml()
-    expected_xml = """<configuration>
-  <define name="x" value="10"/>
-  <define name="y" value="20"/>
-  <define name="!(x + 5)" value="15"/>
-</configuration>"""
+    expected_xml = """
+<x>10</x>
+<y>20</y>
+<plus>15</plus>"""
 
     assert output_xml.strip() == expected_xml.strip()
