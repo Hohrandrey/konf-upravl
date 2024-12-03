@@ -1,75 +1,64 @@
-import subprocess
-import sys
-import os
-import json
 import argparse
-import unittest
+import subprocess
+import pkg_resources
+from PIL import Image, ImageDraw, ImageFont
 
 
+# Функция для получения зависимостей пакета
 def get_dependencies(package_name):
-    """
-    Получить зависимости для указанного пакета, включая транзитивные.
-    """
-    dependencies = {}
-
-    # Получаем список зависимостей с помощью pipdeptree
-    result = subprocess.run(['pipdeptree', '--json'], stdout=subprocess.PIPE, text=True)
-
+    """Получить транзитивные зависимости пакета через pip."""
+    result = subprocess.run(['pip', 'show', package_name], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     if result.returncode != 0:
-        print(f"Ошибка при получении зависимостей для пакета {package_name}")
-        sys.exit(1)
+        raise ValueError(f"Не удалось получить информацию о пакете {package_name}")
 
-    packages = json.loads(result.stdout)
+    installed = result.stdout.decode('utf-8')
+    dependencies = []
 
-    # Строим словарь зависимостей
-    for pkg in packages:
-        if pkg['package']['key'] == package_name:
-            dependencies[pkg['package']['key']] = [dep['package']['key'] for dep in pkg.get('dependencies', [])]
+    for line in installed.splitlines():
+        if line.startswith("Requires"):
+            dependencies = line.split(":")[1].strip().split(", ")
+            break
 
     return dependencies
 
 
-def generate_mermaid_graph(dependencies):
-    """
-    Генерирует строку для визуализации графа зависимостей в формате Mermaid.
-    """
-    graph = "graph TD\n"
+# Генерация графа в формате Mermaid
+def generate_mermaid_graph(package_name):
+    """Генерируем строку Mermaid для графа зависимостей."""
+    dependencies = get_dependencies(package_name)
 
-    # Проходим по зависимостям и строим граф
-    for package, deps in dependencies.items():
-        for dep in deps:
-            graph += f"    {package} --> {dep}\n"
-
+    graph = f"graph TD\n  {package_name} -->|depends on| {', '.join(dependencies)}"
     return graph
 
 
-def visualize_graph(graph, visualizer_path):
-    """
-    Визуализирует граф, используя внешний инструмент для работы с Mermaid.
-    """
-    # Сохраняем граф в файл
-    with open('graph.mmd', 'w') as f:
-        f.write(graph)
+# Функция для визуализации Mermaid в изображение
+def visualize_mermaid_graph(mermaid_code, output_path):
+    """Визуализирует Mermaid граф с использованием Pillow."""
+    img = Image.new('RGB', (800, 600), color='white')
+    draw = ImageDraw.Draw(img)
 
-    # Запускаем внешний инструмент для визуализации
-    subprocess.run([visualizer_path, 'graph.mmd'], check=True)
+    # Для простоты, выводим Mermaid код как текст на картинке
+    font = ImageFont.load_default()
+    draw.text((10, 10), mermaid_code, font=font, fill="black")
+
+    img.save(output_path)
+    img.show()
 
 
+# Основная логика работы инструмента командной строки
 def main():
-    parser = argparse.ArgumentParser(description='Визуализатор зависимостей Python-пакетов')
-    parser.add_argument('visualizer_path', help='Путь к программе для визуализации графов (например, mermaid-cli)')
-    parser.add_argument('package_name', help='Имя анализируемого пакета')
+    parser = argparse.ArgumentParser(description="Визуализатор зависимостей Python пакетов")
+    parser.add_argument("package", help="Имя пакета для анализа зависимостей")
+    parser.add_argument("output", help="Путь для сохранения изображения графа")
+
     args = parser.parse_args()
 
-    # Получаем зависимости
-    dependencies = get_dependencies(args.package_name)
+    # Генерация графа зависимостей
+    mermaid_code = generate_mermaid_graph(args.package)
 
-    # Генерируем граф в формате Mermaid
-    graph = generate_mermaid_graph(dependencies)
-
-    # Визуализируем граф
-    visualize_graph(graph, args.visualizer_path)
+    # Визуализация в изображение
+    visualize_mermaid_graph(mermaid_code, args.output)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
