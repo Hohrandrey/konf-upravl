@@ -1,17 +1,26 @@
 import argparse
 import subprocess
-import pkg_resources
-from PIL import Image, ImageDraw, ImageFont
+import os
+import sys
 
-
-# Функция для получения зависимостей пакета
-def get_dependencies(package_name):
+# Функция для получения зависимостей пакета (рекурсивно)
+def get_dependencies(package_name, visited=None):
     """Получить транзитивные зависимости пакета через pip."""
-    result = subprocess.run(['pip', 'show', package_name], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    if visited is None:
+        visited = set()
+
+    # Проверка, чтобы избежать бесконечной рекурсии
+    if package_name in visited:
+        return []
+
+    visited.add(package_name)
+
+    # Получаем зависимости через pip show
+    result = subprocess.run(['pip', 'show', package_name], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
     if result.returncode != 0:
         raise ValueError(f"Не удалось получить информацию о пакете {package_name}")
 
-    installed = result.stdout.decode('utf-8')
+    installed = result.stdout
     dependencies = []
 
     for line in installed.splitlines():
@@ -19,46 +28,41 @@ def get_dependencies(package_name):
             dependencies = line.split(":")[1].strip().split(", ")
             break
 
-    return dependencies
+    # Получаем транзитивные зависимости для каждого элемента
+    all_dependencies = []
+    for dependency in dependencies:
+        if dependency:  # Проверяем, что зависимость не пустая
+            all_dependencies.append(dependency)
+            all_dependencies.extend(get_dependencies(dependency, visited))
 
+    return list(set(all_dependencies))  # Убираем дубликаты
 
 # Генерация графа в формате Mermaid
 def generate_mermaid_graph(package_name):
     """Генерируем строку Mermaid для графа зависимостей."""
     dependencies = get_dependencies(package_name)
-
-    graph = f"graph TD\n  {package_name} -->|depends on| {', '.join(dependencies)}"
+    graph = "graph TD\n"
+    for dependency in dependencies:
+        graph += f"  {package_name} --> {dependency}\n"
     return graph
-
-
-# Функция для визуализации Mermaid в изображение
-def visualize_mermaid_graph(mermaid_code, output_path):
-    """Визуализирует Mermaid граф с использованием Pillow."""
-    img = Image.new('RGB', (800, 600), color='white')
-    draw = ImageDraw.Draw(img)
-
-    # Для простоты, выводим Mermaid код как текст на картинке
-    font = ImageFont.load_default()
-    draw.text((10, 10), mermaid_code, font=font, fill="black")
-
-    img.save(output_path)
-    img.show()
-
 
 # Основная логика работы инструмента командной строки
 def main():
     parser = argparse.ArgumentParser(description="Визуализатор зависимостей Python пакетов")
     parser.add_argument("package", help="Имя пакета для анализа зависимостей")
-    parser.add_argument("output", help="Путь для сохранения изображения графа")
+    parser.add_argument("output", help="Путь для сохранения файла Mermaid")
 
     args = parser.parse_args()
 
     # Генерация графа зависимостей
-    mermaid_code = generate_mermaid_graph(args.package)
-
-    # Визуализация в изображение
-    visualize_mermaid_graph(mermaid_code, args.output)
-
+    try:
+        mermaid_code = generate_mermaid_graph(args.package)
+        with open(args.output, 'w') as f:
+            f.write(mermaid_code)
+        print(f"Граф зависимостей успешно записан в файл: {args.output}")
+    except Exception as e:
+        print(f"Произошла ошибка: {e}")
 
 if __name__ == "__main__":
     main()
+
