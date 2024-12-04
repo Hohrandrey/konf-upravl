@@ -1,7 +1,6 @@
 import argparse
 import subprocess
-import os
-import sys
+from graphviz import Digraph
 
 # Функция для получения зависимостей пакета (рекурсивно)
 def get_dependencies(package_name, visited=None):
@@ -11,7 +10,7 @@ def get_dependencies(package_name, visited=None):
 
     # Проверка, чтобы избежать бесконечной рекурсии
     if package_name in visited:
-        return []
+        return [], {}
 
     visited.add(package_name)
 
@@ -22,47 +21,60 @@ def get_dependencies(package_name, visited=None):
 
     installed = result.stdout
     dependencies = []
+    dependency_hierarchy = {}
 
     for line in installed.splitlines():
         if line.startswith("Requires"):
-            dependencies = line.split(":")[1].strip().split(", ")
+            # Разделяем зависимости и убираем пробелы
+            dependencies = [dep.strip() for dep in line.split(":")[1].strip().split(", ") if dep.strip()]
             break
 
-    # Получаем транзитивные зависимости для каждого элемента
-    all_dependencies = []
+    # Получаем транзитивные зависимости для каждого элемента, но только на уровне первого уровня
     for dependency in dependencies:
         if dependency:  # Проверяем, что зависимость не пустая
-            all_dependencies.append(dependency)
-            all_dependencies.extend(get_dependencies(dependency, visited))
+            sub_dependencies, sub_hierarchy = get_dependencies(dependency, visited)
+            dependency_hierarchy[dependency] = sub_hierarchy
 
-    return list(set(all_dependencies))  # Убираем дубликаты
+    # Убираем дубликаты и возвращаем иерархию зависимостей
+    return list(set(dependencies)), dependency_hierarchy
 
-# Генерация графа в формате Mermaid
-def generate_mermaid_graph(package_name):
-    """Генерируем строку Mermaid для графа зависимостей."""
-    dependencies = get_dependencies(package_name)
-    graph = "graph TD\n"
-    for dependency in dependencies:
-        graph += f"  {package_name} --> {dependency}\n"
-    return graph
+# Генерация графа с учетом иерархии зависимостей
+def generate_graphviz_graph(package_name, output_image_path):
+    """Генерируем граф зависимостей с использованием graphviz с учетом иерархии зависимостей."""
+    dependencies, dependency_hierarchy = get_dependencies(package_name)
+    dot = Digraph(format='png')
+    dot.node(package_name, package_name)  # Добавляем основной пакет
+
+    # Рекурсивная функция для добавления узлов и ребер с учетом иерархии
+    def add_dependencies(parent, dependencies):
+        for dependency in dependencies:
+            if dependency.strip():  # Проверяем, что зависимость не пустая
+                dot.node(dependency, dependency)  # Добавляем зависимость
+                dot.edge(parent, dependency)  # Соединяем родительский узел с зависимостью
+
+                # Добавляем подзависимости только на уровне одного уровня вложенности
+                if dependency in dependency_hierarchy:
+                    add_dependencies(dependency, dependency_hierarchy[dependency])
+
+    # Запуск рекурсивной функции для добавления зависимостей первого уровня
+    add_dependencies(package_name, dependencies)
+
+    dot.render(output_image_path, cleanup=True)  # Сохраняем изображение
 
 # Основная логика работы инструмента командной строки
 def main():
     parser = argparse.ArgumentParser(description="Визуализатор зависимостей Python пакетов")
     parser.add_argument("package", help="Имя пакета для анализа зависимостей")
-    parser.add_argument("output", help="Путь для сохранения файла Mermaid")
+    parser.add_argument("output", help="Путь для сохранения файла изображения графа")
 
     args = parser.parse_args()
 
     # Генерация графа зависимостей
     try:
-        mermaid_code = generate_mermaid_graph(args.package)
-        with open(args.output, 'w') as f:
-            f.write(mermaid_code)
-        print(f"Граф зависимостей успешно записан в файл: {args.output}")
+        generate_graphviz_graph(args.package, args.output)
+        print(f"Граф зависимостей успешно записан в изображение: {args.output}")
     except Exception as e:
         print(f"Произошла ошибка: {e}")
 
 if __name__ == "__main__":
     main()
-
