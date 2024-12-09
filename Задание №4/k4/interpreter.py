@@ -71,7 +71,7 @@ class Interpreter:
             raise ValueError("В бинарном файле присутствуют невалидные данные: обращение к ячейки памяти по адресу вне диапазона")
         if not (self.boundaries[0] <= self.registers[B] + D <= self.boundaries[1]):
             raise ValueError("В бинарном файле присутствуют невалидные данные: обращение к ячейки памяти по адресу вне диапазона")
-        self.registers[C] = self.registers[self.registers[B] + D]
+        self.registers[C] = (self.registers[self.registers[B] + D]) ** 0.5
 
 
 if __name__ == "__main__":

@@ -65,34 +65,34 @@
     },
     {
         "address": 16,
-        "value": 3
+        "value": 1.7320508075688772
     },
     {
         "address": 17,
-        "value": 2
+        "value": 1.4142135623730951
     },
     {
         "address": 18,
-        "value": 5
+        "value": 2.23606797749979
     },
     {
         "address": 19,
-        "value": 3
+        "value": 1.7320508075688772
     },
     {
         "address": 20,
-        "value": 2
+        "value": 1.4142135623730951
     },
     {
         "address": 21,
-        "value": 1
+        "value": 1.0
     },
     {
         "address": 22,
-        "value": 6
+        "value": 2.449489742783178
     },
     {
         "address": 23,
-        "value": 7
+        "value": 2.6457513110645907
     }
 ]
