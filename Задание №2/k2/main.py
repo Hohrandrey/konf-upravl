@@ -36,6 +36,7 @@ def get_dependencies(package_name, visited=None):
             dependency_hierarchy[dependency] = sub_hierarchy
 
     # Убираем дубликаты и возвращаем иерархию зависимостей
+    print(list(set(dependencies)), dependency_hierarchy)
     return list(set(dependencies)), dependency_hierarchy
 
 # Генерация графа с учетом иерархии зависимостей
