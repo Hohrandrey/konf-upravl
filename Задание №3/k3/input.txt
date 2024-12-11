@@ -1,4 +1,0 @@
-(define x 5)
-(define y 7)
-(define arr [1 2 3 4])
-!(arr len)

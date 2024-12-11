@@ -1,4 +1,0 @@
-<x>5</x>
-<y>7</y>
-<arr>[1, 2, 3, 4]</arr>
-<len_result>4</len_result>

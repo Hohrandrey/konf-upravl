@@ -1,6 +1,4 @@
 import re
-import xml.etree.ElementTree as ET
-from xml.dom import minidom
 
 # Класс для работы с конфигурацией
 class ConfigParser:
@@ -34,7 +32,6 @@ class ConfigParser:
         if expr[0] == "!":
             expr = expr[2:].strip()  # Убираем "!" и оставляем выражение
         tokens = expr.split()
-
 
         # Первый элемент - это имя переменной
         name = tokens[0]
@@ -97,37 +94,41 @@ class ConfigParser:
             # Преобразуем значение в строку, если это массив, то в строку вида [1, 2, 3]
             if isinstance(value, list):
                 value = f"[{', '.join(map(str, value))}]"
-            # Записываем только переменные, не содержащие "!".
-            # Избегаем записей вида !(x pow 3)
+            # Записываем только переменные, не содержащие "!". Избегаем записей вида !(x pow 3)
             if not name.startswith("!("):
                 result += f"<{name}>{value}</{name}>\n"
 
         # Возвращаем результат
         return result
 
-
 # Основная логика программы
 def main():
-    try:
-        with open('input1.txt', 'r') as infile:
-            input_text = infile.read()
+    parser = ConfigParser()
+    all_input_text = ""
 
-        # Проверка на пустоту входных данных
-        if not input_text.strip():
-            raise ValueError("Входной файл пуст.")
+    while True:
+        try:
+            # Ввод данных с клавиатуры
+            input_text = input("Введите текст конфигурации (или 'exit' для выхода): ")
 
-        parser = ConfigParser()
-        parser.parse(input_text)
+            # Проверка на команду выхода
+            if input_text.strip().lower() == 'exit':
+                if all_input_text.strip():  # Если есть накопленные команды, обрабатываем их
+                    parser.parse(all_input_text)
+                    output_xml = parser.to_xml()
+                    print("Результирующий XML:")
+                    print(output_xml)
+                print("Выход из программы.")
+                break
 
-        output_xml = parser.to_xml()
+            # Накопление команд
+            if input_text.strip():
+                all_input_text += input_text + "\n"
+            else:
+                print("Входные данные пусты. Пожалуйста, введите команды.")
 
-        with open('output1.txt', 'w') as outfile:
-            outfile.write(output_xml)
-
-        print("XML файл успешно записан.")
-
-    except ValueError as e:
-        print(f"Ошибка: {e}")
+        except ValueError as e:
+            print(f"Ошибка: {e}")
 
 if __name__ == "__main__":
     main()

@@ -1,6 +1,0 @@
-<x>2</x>
-<a>10</a>
-<b>3</b>
-<pow>8</pow>
-<minus>5</minus>
-<plus>5</plus>
