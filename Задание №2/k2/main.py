@@ -93,16 +93,7 @@ def main():
         if result.returncode != 0:
             raise ValueError(f"Ошибка при генерации изображения: {result.stderr}")
 
-        # Проверка на ошибки
-        if result.stderr:
-            print(f"Ошибка при выполнении Mermaid CLI: {result.stderr}")
-        if result.stdout:
-            print(f"Вывод Mermaid CLI: {result.stdout}")
-
         print(f"Изображение графа успешно сохранено в файл: {output_image_path}")
-
-        # Завершаем работу программы
-        print("Программа завершила свою работу.")
         sys.exit(0)  # Явное завершение программы с успешным кодом
 
     except Exception as e:
