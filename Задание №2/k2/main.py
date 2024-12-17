@@ -1,6 +1,7 @@
 import argparse
 import subprocess
-from graphviz import Digraph
+import sys
+
 
 # Функция для получения зависимостей пакета (рекурсивно)
 def get_dependencies(package_name, visited=None):
@@ -38,43 +39,76 @@ def get_dependencies(package_name, visited=None):
     # Убираем дубликаты и возвращаем иерархию зависимостей
     return list(set(dependencies)), dependency_hierarchy
 
-# Генерация графа с учетом иерархии зависимостей
-def generate_graphviz_graph(package_name, output_image_path):
-    """Генерируем граф зависимостей с использованием graphviz с учетом иерархии зависимостей."""
+
+# Генерация графа в формате Mermaid
+def generate_mermaid_graph(package_name, output_file_path):
+    """Генерируем граф зависимостей в формате Mermaid."""
     dependencies, dependency_hierarchy = get_dependencies(package_name)
-    dot = Digraph(format='png')
-    dot.node(package_name, package_name)  # Добавляем основной пакет
 
-    # Рекурсивная функция для добавления узлов и ребер с учетом иерархии
-    def add_dependencies(parent, dependencies):
-        for dependency in dependencies:
-            if dependency.strip():  # Проверяем, что зависимость не пустая
-                dot.node(dependency, dependency)  # Добавляем зависимость
-                dot.edge(parent, dependency)  # Соединяем родительский узел с зависимостью
+    # Открываем файл для записи
+    with open(output_file_path, 'w') as f:
+        f.write("graph TD\n")  # Указываем тип графа (Directed Graph)
 
-                # Добавляем подзависимости только на уровне одного уровня вложенности
-                if dependency in dependency_hierarchy:
-                    add_dependencies(dependency, dependency_hierarchy[dependency])
+        # Функция для добавления зависимостей в Mermaid-формате
+        def add_dependencies(parent, dependencies):
+            for dependency in dependencies:
+                if dependency.strip():  # Проверяем, что зависимость не пустая
+                    f.write(
+                        f"    {parent} --> {dependency}\n")  # Добавляем ребро между родительским пакетом и зависимостью
 
-    # Запуск рекурсивной функции для добавления зависимостей первого уровня
-    add_dependencies(package_name, dependencies)
+                    # Рекурсивно добавляем подзависимости
+                    if dependency in dependency_hierarchy:
+                        add_dependencies(dependency, dependency_hierarchy[dependency])
 
-    dot.render(output_image_path, cleanup=True)  # Сохраняем изображение
+        # Добавляем основной пакет
+        f.write(f"    {package_name}\n")
+
+        # Запуск рекурсивной функции для добавления зависимостей
+        add_dependencies(package_name, dependencies)
+
 
 # Основная логика работы инструмента командной строки
 def main():
-    parser = argparse.ArgumentParser(description="Визуализатор зависимостей Python пакетов")
+    parser = argparse.ArgumentParser(description="Визуализатор зависимостей Python пакетов в формате Mermaid")
     parser.add_argument("package", help="Имя пакета для анализа зависимостей")
-    parser.add_argument("output", help="Путь для сохранения файла изображения графа")
+    parser.add_argument("mermaid_cli_path", help="Путь к программе для визуализации графов (Mermaid CLI)")
 
     args = parser.parse_args()
 
-    # Генерация графа зависимостей
+    # Генерация графа зависимостей в формате Mermaid
     try:
-        generate_graphviz_graph(args.package, args.output)
-        print(f"Граф зависимостей успешно записан в изображение: {args.output}")
+        mermaid_file_path = "graph.mmd"  # Имя файла, куда будет сохранен граф Mermaid
+        output_image_path = "graph.png"  # Всегда сохраняем граф как PNG
+
+        # Генерация графа
+        generate_mermaid_graph(args.package, mermaid_file_path)
+        print(f"Граф зависимостей успешно записан в файл: {mermaid_file_path}")
+
+        # Используем Mermaid CLI для генерации изображения
+        result = subprocess.run(
+            [args.mermaid_cli_path, "-i", mermaid_file_path, "-o", output_image_path],
+            stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, timeout=60  # Добавили timeout
+        )
+
+        if result.returncode != 0:
+            raise ValueError(f"Ошибка при генерации изображения: {result.stderr}")
+
+        # Проверка на ошибки
+        if result.stderr:
+            print(f"Ошибка при выполнении Mermaid CLI: {result.stderr}")
+        if result.stdout:
+            print(f"Вывод Mermaid CLI: {result.stdout}")
+
+        print(f"Изображение графа успешно сохранено в файл: {output_image_path}")
+
+        # Завершаем работу программы
+        print("Программа завершила свою работу.")
+        sys.exit(0)  # Явное завершение программы с успешным кодом
+
     except Exception as e:
         print(f"Произошла ошибка: {e}")
+        sys.exit(1)  # Если произошла ошибка, программа завершится с кодом ошибки
+
 
 if __name__ == "__main__":
     main()
