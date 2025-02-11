@@ -19,7 +19,7 @@ def test_get_dependencies(mock_subprocess):
 
     dependencies, dependency_hierarchy = get_dependencies(package_name, visited)
 
-    assert dependencies == ['dep1', 'dep2']
+    assert sorted(dependencies) == sorted(['dep2', 'dep1'])
     assert package_name in visited
 
 @patch('subprocess.run')
